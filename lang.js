@@ -30,4 +30,27 @@
   }
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
+
+  // hire-me form → Google Apps Script web app (sheet + email + calendar). Hidden until an endpoint is set.
+  var form = document.getElementById("hireForm");
+  if (form && form.dataset.endpoint) {
+    form.hidden = false;
+    var status = form.querySelector(".fstatus");
+    var msg = {
+      sending: { ja: "送信中…", en: "Sending…" },
+      ok: { ja: "送信しました。ありがとうございます！1営業日以内にご連絡します。", en: "Sent — thank you! I'll reply within one business day." },
+      invalid: { ja: "＊の項目をご記入ください。", en: "Please fill in the fields marked *." },
+      err: { ja: "送信できませんでした。お手数ですが LinkedIn からご連絡ください。", en: "Couldn't send. Please message me on LinkedIn instead." }
+    };
+    var say = function (k, cls) { status.textContent = msg[k][root.dataset.lang === "en" ? "en" : "ja"]; status.className = "fstatus " + (cls || ""); };
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!form.checkValidity()) { say("invalid", "err"); form.reportValidity(); return; }
+      var btn = form.querySelector("button"); btn.disabled = true; say("sending");
+      fetch(form.dataset.endpoint, { method: "POST", mode: "no-cors", body: new URLSearchParams(new FormData(form)) })
+        .then(function () { form.reset(); say("ok", "ok"); })
+        .catch(function () { say("err", "err"); })
+        .finally(function () { btn.disabled = false; });
+    });
+  }
 })();

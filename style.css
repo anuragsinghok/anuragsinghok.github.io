@@ -81,6 +81,21 @@ main{position:relative;z-index:5}
 .contact{list-style:none;margin:10px 0 0;padding:0;font-size:14.5px;line-height:2.1}
 .contact a{font-weight:700;text-underline-offset:4px}
 
+.hform{display:grid;gap:10px;margin:14px 0 6px}
+.hform[hidden]{display:none}
+.ftitle{font-weight:700;color:var(--ink)!important;margin:0!important}
+.hform .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hform label{display:grid;gap:3px;font-size:12.5px;font-weight:700;color:var(--ink)}
+.hform input,.hform select,.hform textarea{font:inherit;font-weight:400;font-size:14px;width:100%;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;background:#fffdf8;color:var(--ink)}
+.hform input:focus,.hform select:focus,.hform textarea:focus{outline:2px solid var(--red);outline-offset:0;border-color:transparent}
+.hform fieldset{border:1.5px dashed var(--line);border-radius:12px;padding:8px 10px 10px;display:grid;gap:8px;margin:0}
+.hform legend{font-size:12.5px;font-weight:700;padding:0 4px}
+.hform .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.hform button{border:0;cursor:pointer;justify-self:start}
+.fstatus{font-size:13.5px;margin:0!important}
+.fstatus.ok{color:#1e7145!important;font-weight:700}
+.fstatus.err{color:var(--red)!important;font-weight:700}
+.dl{margin:12px 0 4px}
 .foot{position:relative;z-index:5;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:18px 22px 26px;font-size:12px;color:var(--ink-soft)}
 
 @media (max-width:760px){
@@ -92,6 +107,7 @@ main{position:relative;z-index:5}
   .hero h1{font-size:40px}.hero h1 br{display:none}
   .badges .badge:not(.visa){display:none}
   .why{grid-template-columns:1fr}
+  .hform .row{grid-template-columns:1fr}
   .dots{right:6px}
   .corner{display:none}
 }
