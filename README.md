@@ -11,3 +11,5 @@ Try typing on your own keyboard, or type `HIRE`.
 - Japanese / English switch (remembered per visitor)
 - Works without a build step: plain HTML, CSS and ES modules (`three` is vendored in `vendor/`)
 - Hosted on GitHub Pages
+
+Contact: [LinkedIn](https://linkedin.com/in/anuragsinghok) · [GitHub](https://github.com/anuragsinghok)
