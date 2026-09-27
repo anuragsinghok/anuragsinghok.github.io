@@ -39,14 +39,20 @@ const art = {
   aws(g, w, h) { g.fillStyle = "#232f3e"; g.fillRect(0, 0, w, h); T(g, "aws", w / 2, h * .42, h * .42, "#fff", F, 900); g.strokeStyle = "#ff9900"; g.lineWidth = h * .07; g.beginPath(); g.moveTo(w * .28, h * .7); g.quadraticCurveTo(w * .5, h * .86, w * .72, h * .68); g.stroke(); },
   why(g, w, h) { g.fillStyle = "#fbf6ec"; g.fillRect(0, 0, w, h); g.strokeStyle = "#c8312b"; g.lineWidth = h * .07; g.beginPath(); g.arc(w / 2, h / 2, h * .42, 0, 7); g.stroke(); T(g, "報連相", w / 2, h / 2, h * .26, "#c8312b", FS, 800); },
   works(g, w, h) { g.fillStyle = "#2b2f3a"; g.fillRect(0, 0, w, h); T(g, "</>", w / 2, h / 2, h * .46, "#9fe0b8", F, 900); },
+  build(g, w, h) {
+    g.fillStyle = "#fbf6ec"; g.fillRect(0, 0, w, h); g.fillStyle = "#c8312b"; g.fillRect(0, 0, w, h * .26);
+    T(g, String(shipped), w * .44, h * .64, h * .56, "#1c1a17", FS, 800); T(g, "/97", w * .78, h * .76, h * .2, "#6b6358", F, 700);
+  },
   faq(g, w, h) { g.fillStyle = "#3a3346"; g.fillRect(0, 0, w, h); T(g, "？", w / 2, h * .52, h * .66, "#f3d9ff", FS, 800); },
 };
 const special = {
   "3": { art: "india", label: "INDIA" }, E: { art: "amity", label: "2024" }, G: { art: "japan", label: "日本" },
   V: { art: "python", label: "NOW" }, J: { art: "aws", label: "NEXT" }, H: { art: "why", label: "WHY" },
-  P: { art: "works", label: "WORKS" }, "/": { art: "faq", label: "FAQ" }, ENTER: { hire: true },
+  P: { art: "works", label: "WORKS" }, B: { art: "build", label: "97 DAYS" }, "/": { art: "faq", label: "FAQ" }, ENTER: { hire: true },
 };
 const redraws = [];
+const projEls = [...document.querySelectorAll(".proj[data-day]")];
+const shipped = projEls.length;
 
 /* ---------- keyboard ---------- */
 const root = new THREE.Group(); scene.add(root);
@@ -103,6 +109,22 @@ makeKey(" ", "", 0, -caseD / 2 + .3 + 4 * P, P * 5.6 - .04);
   m.rotation.x = -Math.PI / 2; m.position.y = .002; root.add(m);
 }
 
+/* ---------- projects: 3D screens that rise out of the keyboard on the "B" chapter ---------- */
+const tiles = [];
+{
+  const loader = new THREE.TextureLoader(), W = 1.3, H = W * 630 / 1200, list = projEls.slice(-4);
+  const base = byName.B.cap.position;
+  list.forEach((el, i) => {
+    const off = i - (list.length - 1) / 2;
+    const g = new THREE.Group(); g.position.set(base.x + off * (W + .18), .95, base.z - .25); g.rotation.set(-.55, -off * .22, 0);
+    const frameMesh = new THREE.Mesh(new RoundedBoxGeometry(W + .08, H + .08, .05, 3, .03), new THREE.MeshStandardMaterial({ color: 0x1c1a17, roughness: .4 }));
+    const tex = loader.load(el.dataset.img); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+    screen.position.z = .027; g.add(frameMesh, screen); g.visible = false; kb.add(g);
+    tiles.push({ g, url: el.dataset.url, y: .95, off, hit: [frameMesh, screen] });
+  });
+}
+
 /* ---------- camera: one shot per page section ---------- */
 const panels = [...document.querySelectorAll(".panel")];
 const n0 = V(0, .82, .57).normalize();
@@ -119,7 +141,7 @@ function shots() {
   KF = panels.map((p) => {
     const k = p.dataset.key;
     if (k === "HERO") return framing(V(0, .3, 0), n0, innerWidth < 760 ? 14 : 10);
-    return framing(byName[k].cap.getWorldPosition(new THREE.Vector3()), n0, k === "ENTER" ? 3.6 : k === "P" || k === "/" || k === "H" ? 4.2 : 3.2);
+    return framing(byName[k].cap.getWorldPosition(new THREE.Vector3()), n0, k === "ENTER" ? 3.6 : k === "B" ? 5 : k === "P" || k === "/" || k === "H" ? 4.2 : 3.2);
   });
 }
 function resize() {
@@ -143,11 +165,17 @@ addEventListener("pointermove", (e) => { mouse.x = e.clientX / innerWidth * 2 - 
 let buf = "";
 addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
   const n = e.key === "Enter" ? "ENTER" : e.key.length === 1 ? e.key.toUpperCase() : null;
   if (!n || !byName[n]) return;
   byName[n].typed = 1;
   buf = (buf + n).slice(-4);
   if (buf === "HIRE") document.getElementById("contact").scrollIntoView({ behavior: "smooth" });
+});
+
+let hoverTile = null;
+addEventListener("click", (e) => {
+  if (hoverTile && !e.target.closest("a, button, input, textarea, select, summary, label, .card")) window.open(hoverTile.url, "_blank", "noopener");
 });
 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -176,6 +204,16 @@ function frame() {
     const want = .3 - press * .08; key.cap.position.y += (want - key.cap.position.y) * .25;
     if (key.sp && !key.sp.hire) key.body.material.emissive.setHex(key.name === activeKey ? 0x3a2a10 : 0x000000);
   }
+  const bi = panels.findIndex((p) => p.dataset.key === "B");
+  const show = bi < 0 ? 0 : ease(Math.max(0, Math.min(1, 1 - Math.abs(f - bi) * 1.6)));
+  let over = null;
+  for (const tl of tiles) {
+    tl.g.visible = show > .01;
+    tl.g.scale.setScalar(Math.max(.001, show));
+    tl.g.position.y = tl.y - (1 - show) * .6 + (reduce ? 0 : Math.sin(t * 1.3 + tl.off) * .025);
+    if (show > .6 && mouse.active && ray.intersectObjects(tl.hit, false).length) over = tl;
+  }
+  if (over !== hoverTile) { hoverTile = over; document.body.style.cursor = over ? "pointer" : ""; }
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }

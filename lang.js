@@ -31,6 +31,24 @@
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
+  // project cards tilt in 3D under the pointer (mouse and pen only; skipped for reduced motion)
+  var still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.querySelectorAll(".proj").forEach(function (card) {
+    if (still) return;
+    card.addEventListener("pointermove", function (e) {
+      if (e.pointerType === "touch") return;
+      var r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      card.classList.add("tilting");
+      card.style.setProperty("--ry", (x * 10).toFixed(2) + "deg");
+      card.style.setProperty("--rx", (-y * 8).toFixed(2) + "deg");
+    });
+    card.addEventListener("pointerleave", function () {
+      card.classList.remove("tilting");
+      card.style.setProperty("--ry", "0deg");
+      card.style.setProperty("--rx", "0deg");
+    });
+  });
+
   // hire-me form → Google Apps Script web app (sheet + email + calendar). Hidden until an endpoint is set.
   var form = document.getElementById("hireForm");
   if (form && form.dataset.endpoint) {
