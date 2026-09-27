@@ -125,6 +125,36 @@ const tiles = [];
   });
 }
 
+/* ---------- every other chapter: its key's picture pops out of the keyboard in 3D ---------- */
+// camera distance per chapter; the pop-ups are sized to it so they always fit the shot
+const distFor = (k) => k === "ENTER" ? 3.6 : k === "B" ? 5 : k === "P" || k === "/" || k === "H" ? 4.2 : 3.2;
+const pops = [];
+for (const [name, sp] of Object.entries(special)) {
+  if (name === "B") continue;
+  const kf = distFor(name) / 5, W = 1.3 * kf, H = W * .6;
+  const c = document.createElement("canvas"); c.width = 1050; c.height = 630;
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  const paint = () => {
+    const g = c.getContext("2d"), cw = c.width, ch = c.height; g.clearRect(0, 0, cw, ch);
+    if (sp.hire) {
+      g.fillStyle = "#d2452f"; g.fillRect(0, 0, cw, ch);
+      T(g, "採用", cw / 2, ch * .44, ch * .44, "#fff", FS, 800); T(g, "ENTER ⏎ HIRE ME", cw / 2, ch * .84, ch * .09, "#ffd9d0", F, 700);
+    } else {
+      art[sp.art](g, cw, ch * .8);
+      g.fillStyle = "#1c1a17"; g.fillRect(0, ch * .8, cw, ch * .2); T(g, sp.label, cw / 2, ch * .9, ch * .1, "#f6f1e7", F, 800);
+    }
+    tex.needsUpdate = true;
+  };
+  paint(); redraws.push(paint);
+  const g = new THREE.Group();
+  const slab = new THREE.Mesh(new RoundedBoxGeometry(W + .06, H + .06, .08 * kf + .02, 3, .03), new THREE.MeshStandardMaterial({ color: sp.hire ? 0x8e2415 : 0x1c1a17, roughness: .4 }));
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+  face.position.z = .04 * kf + .012; g.add(slab, face);
+  const base = byName[name].cap.position, y = .3 + .65 * kf;
+  g.position.set(base.x, y, base.z - .25 * kf); g.visible = false; kb.add(g);
+  pops.push({ g, key: name, y });
+}
+
 /* ---------- camera: one shot per page section ---------- */
 const panels = [...document.querySelectorAll(".panel")];
 const n0 = V(0, .82, .57).normalize();
@@ -141,7 +171,7 @@ function shots() {
   KF = panels.map((p) => {
     const k = p.dataset.key;
     if (k === "HERO") return framing(V(0, .3, 0), n0, innerWidth < 760 ? 14 : 10);
-    return framing(byName[k].cap.getWorldPosition(new THREE.Vector3()), n0, k === "ENTER" ? 3.6 : k === "B" ? 5 : k === "P" || k === "/" || k === "H" ? 4.2 : 3.2);
+    return framing(byName[k].cap.getWorldPosition(new THREE.Vector3()), n0, distFor(k));
   });
 }
 function resize() {
@@ -204,8 +234,16 @@ function frame() {
     const want = .3 - press * .08; key.cap.position.y += (want - key.cap.position.y) * .25;
     if (key.sp && !key.sp.hire) key.body.material.emissive.setHex(key.name === activeKey ? 0x3a2a10 : 0x000000);
   }
-  const bi = panels.findIndex((p) => p.dataset.key === "B");
-  const show = bi < 0 ? 0 : ease(Math.max(0, Math.min(1, 1 - Math.abs(f - bi) * 1.6)));
+  const showFor = (name) => { const idx = panels.findIndex((p) => p.dataset.key === name); return idx < 0 ? 0 : ease(Math.max(0, Math.min(1, 1 - Math.abs(f - idx) * 1.6))); };
+  const small = innerWidth < 760; // phones: the card covers the lower half, so keep pop-ups smaller and lower
+  for (const pp of pops) {
+    const s = showFor(pp.key), lift = small ? .3 + (pp.y - .3) * .5 : pp.y;
+    pp.g.visible = s > .01;
+    pp.g.scale.setScalar(Math.max(.001, s * (small ? .62 : 1)));
+    pp.g.position.y = lift - (1 - s) * .55 + (reduce ? 0 : Math.sin(t * 1.2 + pp.g.position.x) * .02);
+    pp.g.rotation.set(-.5, reduce ? 0 : (1 - s) * 1.4 + Math.sin(t * .7) * .06, 0);
+  }
+  const show = showFor("B");
   let over = null;
   for (const tl of tiles) {
     tl.g.visible = show > .01;

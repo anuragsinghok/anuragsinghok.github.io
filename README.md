@@ -8,7 +8,7 @@ A 3D Japanese-layout (kana) keyboard built with Three.js: every section of the p
 (India → Amity 2024 → Japan → automation → AWS → why hire me → work → 97 days of building in public → FAQ → Enter = 採用).
 Try typing on your own keyboard, or type `HIRE`.
 
-- Projects from the 97-day build-in-public series rise out of the keyboard as 3D screens (click one to open it)
+- Every chapter pops its key's picture out of the keyboard in 3D, and the 97-day build-in-public projects rise up as 3D screens (click one to open it)
 - Japanese / English switch (remembered per visitor)
 - Works without a build step: plain HTML, CSS and ES modules (`three` is vendored in `vendor/`)
 - Hosted on GitHub Pages
